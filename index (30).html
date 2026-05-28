@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ReachDraft — Free Recruiter Outreach Generator</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --green:#1a9e6f;--green-dark:#137a56;--green-light:#e8f7f2;--green-mid:#9fe1cb;
+  --purple:#6c4de6;--purple-light:#f0edfd;--purple-dark:#4f35c2;
+  --bg:#f5f5f0;--surface:#fff;--border:#e4e4dc;--border-strong:#d0d0c8;
+  --text:#1a1a16;--muted:#6b6b64;--faint:#a8a8a0;
+  --radius:10px;--radius-sm:6px;
+}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;line-height:1.6;}
+
+.topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.05);}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.logo-mark{width:30px;height:30px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:14px;}
+.logo-name{font-size:15px;font-weight:700;color:var(--text);}
+.logo-tag{font-size:11px;background:var(--green-light);color:var(--green-dark);padding:2px 8px;border-radius:20px;font-weight:600;}
+
+.hero{background:linear-gradient(135deg,#0d2e22 0%,#1a4a35 60%,#0f6e56 100%);color:#fff;padding:28px 24px;display:flex;flex-direction:column;gap:7px;}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);color:#9fe1cb;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;width:fit-content;letter-spacing:.04em;}
+.hero h1{font-size:22px;font-weight:700;line-height:1.3;}
+.hero p{font-size:13px;color:rgba(255,255,255,0.62);max-width:620px;line-height:1.7;}
+
+.layout{display:grid;grid-template-columns:370px 1fr;min-height:calc(100vh - 54px - 52px);}
+.left-col{background:var(--surface);border-right:1px solid var(--border);padding:16px;display:flex;flex-direction:column;gap:13px;overflow-y:auto;}
+.right-col{padding:16px;display:flex;flex-direction:column;gap:13px;}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px;}
+.card-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.card-title{font-size:11px;font-weight:700;color:var(--text);display:flex;align-items:center;gap:7px;text-transform:uppercase;letter-spacing:.05em;}
+.card-icon{width:22px;height:22px;background:var(--green-light);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:12px;}
+.ghost-btn{background:none;border:none;font-size:12px;color:var(--green);cursor:pointer;font-family:'Inter',sans-serif;font-weight:500;padding:3px 7px;border-radius:4px;transition:background .15s;}
+.ghost-btn:hover{background:var(--green-light);}
+.ghost-btn.dim{color:var(--muted);}
+
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.f{display:flex;flex-direction:column;gap:4px;}
+.f.full{grid-column:1/-1;}
+.f label{font-size:10px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;}
+.f input,.f textarea,.f select{font-family:'Inter',sans-serif;font-size:13px;padding:7px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:#fafafa;color:var(--text);transition:border-color .15s,box-shadow .15s;width:100%;}
+.f input:focus,.f textarea:focus,.f select:focus{outline:none;border-color:var(--green);box-shadow:0 0 0 3px rgba(26,158,111,.1);background:#fff;}
+.f textarea{resize:vertical;min-height:80px;line-height:1.6;}
+
+.r-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;}
+.r-field .r-label{font-size:10px;color:var(--faint);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px;}
+.r-field .r-val{font-size:13px;font-weight:500;color:var(--text);}
+.r-field .r-val.empty{color:var(--faint);font-style:italic;font-weight:400;}
+
+.tone-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;}
+.tone-opt{border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);padding:8px 10px;cursor:pointer;background:#fafafa;transition:all .15s;display:flex;flex-direction:column;gap:2px;}
+.tone-opt:hover{border-color:var(--green);background:var(--green-light);}
+.tone-opt.active{border-color:var(--green);background:var(--green-light);}
+.tone-opt .t-name{font-size:12px;font-weight:600;color:var(--text);}
+.tone-opt.active .t-name{color:var(--green-dark);}
+.tone-opt .t-sub{font-size:10px;color:var(--faint);}
+
+/* ── MODE SWITCHER ── */
+.mode-section{border:1.5px solid var(--border-strong);border-radius:var(--radius);overflow:hidden;}
+.mode-tabs{display:flex;border-bottom:1px solid var(--border);}
+.mode-tab{flex:1;padding:9px 8px;font-size:12px;font-weight:600;border:none;background:#fafafa;cursor:pointer;font-family:'Inter',sans-serif;color:var(--muted);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:5px;}
+.mode-tab:first-child{border-right:1px solid var(--border);}
+.mode-tab:hover{background:#f0f0ec;color:var(--text);}
+.mode-tab.active-local{background:var(--green-light);color:var(--green-dark);}
+.mode-tab.active-ai{background:var(--purple-light);color:var(--purple-dark);}
+.mode-body{padding:12px;}
+
+/* AI KEY PANEL */
+.ai-panel{display:flex;flex-direction:column;gap:10px;}
+.ai-provider-tabs{display:flex;gap:6px;}
+.prov-btn{flex:1;padding:6px;font-size:11px;font-weight:600;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);background:#fafafa;cursor:pointer;font-family:'Inter',sans-serif;color:var(--muted);transition:all .15s;text-align:center;}
+.prov-btn:hover{border-color:var(--purple);color:var(--purple);}
+.prov-btn.active{border-color:var(--purple);background:var(--purple-light);color:var(--purple-dark);}
+.key-input-wrap{position:relative;display:flex;align-items:center;}
+.key-input-wrap input{font-family:'Inter',sans-serif;font-size:12px;padding:7px 36px 7px 10px;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:#fafafa;color:var(--text);width:100%;letter-spacing:.03em;}
+.key-input-wrap input:focus{outline:none;border-color:var(--purple);box-shadow:0 0 0 3px rgba(108,77,230,.1);background:#fff;}
+.eye-btn{position:absolute;right:8px;background:none;border:none;cursor:pointer;color:var(--faint);font-size:14px;padding:2px;}
+.key-hint{font-size:10px;color:var(--faint);}
+.key-hint a{color:var(--purple);text-decoration:none;}
+.key-hint a:hover{text-decoration:underline;}
+.ai-note{font-size:11px;color:var(--muted);background:var(--purple-light);border-radius:var(--radius-sm);padding:8px 10px;line-height:1.5;}
+
+.local-note{font-size:12px;color:var(--muted);line-height:1.5;}
+.local-note strong{color:var(--green-dark);}
+
+/* BUTTONS */
+.gen-btn{width:100%;padding:11px;border:none;border-radius:var(--radius);font-family:'Inter',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:background .15s,transform .1s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.gen-btn.local-btn{background:var(--green);color:#fff;}
+.gen-btn.local-btn:hover{background:var(--green-dark);}
+.gen-btn.ai-btn{background:var(--purple);color:#fff;}
+.gen-btn.ai-btn:hover{background:var(--purple-dark);}
+.gen-btn:active{transform:scale(.98);}
+.gen-btn:disabled{background:#d0d0c8;color:var(--faint);cursor:not-allowed;transform:none;}
+
+/* DRAFT CARD */
+.draft-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);display:flex;flex-direction:column;flex:1;overflow:hidden;}
+.draft-card-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);background:#fafafa;}
+.ai-generated-badge{font-size:10px;font-weight:600;background:var(--purple-light);color:var(--purple-dark);padding:3px 8px;border-radius:20px;display:none;}
+.ai-generated-badge.show{display:inline-block;}
+.local-generated-badge{font-size:10px;font-weight:600;background:var(--green-light);color:var(--green-dark);padding:3px 8px;border-radius:20px;}
+
+.draft-tabs{display:flex;border-bottom:1px solid var(--border);}
+.dtab{padding:9px 16px;font-size:13px;font-weight:500;color:var(--muted);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;font-family:'Inter',sans-serif;transition:all .15s;display:flex;align-items:center;gap:5px;}
+.dtab:hover{color:var(--text);}
+.dtab.active{color:var(--green);border-bottom-color:var(--green);}
+.dtab.active.ai-active{color:var(--purple);border-bottom-color:var(--purple);}
+
+.dpane{display:none;flex-direction:column;}
+.dpane.active{display:flex;}
+
+.waiting{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 24px;text-align:center;color:var(--muted);gap:10px;}
+.waiting-ico{width:44px;height:44px;background:#f0f0ec;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.waiting h3{font-size:14px;font-weight:600;color:var(--text);}
+.waiting p{font-size:12px;max-width:240px;}
+
+.generating{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px;gap:12px;}
+.spinner{width:28px;height:28px;border:2.5px solid var(--border);border-top-color:var(--purple);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.draft-meta{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.subj-line{font-size:13px;color:var(--text);}
+.subj-lbl{font-size:11px;color:var(--faint);margin-right:5px;}
+.draft-actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.char-badge{font-size:11px;color:var(--faint);}
+.copy-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;font-size:12px;font-weight:500;border:1px solid var(--border-strong);border-radius:var(--radius-sm);background:#fff;cursor:pointer;font-family:'Inter',sans-serif;color:var(--muted);transition:all .15s;}
+.copy-btn:hover{background:#f5f5f0;color:var(--text);}
+.copy-btn.ok{background:var(--green-light);color:var(--green-dark);border-color:var(--green-mid);}
+.wa-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;background:#25D366;color:#fff;border:none;border-radius:var(--radius-sm);font-family:'Inter',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s;text-decoration:none;}
+.wa-btn:hover{background:#1ebe5d;}
+.draft-body{padding:15px;font-size:13px;line-height:1.8;color:var(--text);white-space:pre-wrap;font-family:'Inter',sans-serif;}
+
+/* LOG */
+.log-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:8px 10px;font-size:10px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:#fafafa;}
+td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafaf6;}
+.log-empty{text-align:center;color:var(--faint);font-size:12px;padding:24px;}
+.mbadge{display:inline-block;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;margin:1px;}
+.mb-e{background:#e6f1fb;color:#185fa5;}.mb-w{background:#e8f7f2;color:#0f6e56;}.mb-s{background:#faeeda;color:#854f0b;}
+.mb-ai{background:var(--purple-light);color:var(--purple-dark);}
+
+.alert{padding:9px 12px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:6px;}
+.alert-err{background:#fcebeb;color:#a32d2d;border:1px solid #f7c1c1;}
+.alert-ok{background:var(--green-light);color:var(--green-dark);border:1px solid var(--green-mid);}
+
+footer{background:var(--surface);border-top:1px solid var(--border);padding:14px 24px;text-align:center;font-size:11px;color:var(--faint);}
+
+@media(max-width:820px){
+  .layout{grid-template-columns:1fr;}
+  .left-col{border-right:none;border-bottom:1px solid var(--border);}
+  .hero h1{font-size:18px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="logo" href="#">
+    <div class="logo-mark">RD</div>
+    <span class="logo-name">ReachDraft</span>
+    <span class="logo-tag">⚡ 100% Free</span>
+  </a>
+</div>
+
+<div class="hero">
+  <div class="hero-badge">⚡ INSTANT · NO SIGNUP · FREE FOREVER</div>
+  <h1>Convert Job Details into Instant Outreaches</h1>
+  <p>Fill in candidate and job details — Email, WhatsApp & SMS drafts generate instantly via Smart Templates. Have an API key? Switch to AI Mode for fully personalised, dynamic outreach.</p>
+</div>
+
+<div class="layout">
+
+  <!-- LEFT -->
+  <div class="left-col">
+
+    <!-- Recruiter Identity -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">👤</div>Recruiter Identity</div>
+        <button class="ghost-btn" id="rec-toggle" onclick="toggleRecEdit()">Edit</button>
+      </div>
+      <div id="rec-view" class="r-grid">
+        <div class="r-field"><div class="r-label">Name</div><div class="r-val empty" id="rv-name">Not set</div></div>
+        <div class="r-field"><div class="r-label">Designation</div><div class="r-val empty" id="rv-desig">Not set</div></div>
+        <div class="r-field"><div class="r-label">Company</div><div class="r-val empty" id="rv-co">Not set</div></div>
+        <div class="r-field"><div class="r-label">Meeting Link</div><div class="r-val empty" id="rv-link" style="font-size:11px;word-break:break-all;">Not set</div></div>
+      </div>
+      <div id="rec-edit" style="display:none;">
+        <div class="fg">
+          <div class="f"><label>Your Name *</label><input id="rName" placeholder="Prasoon Purbia" oninput="onFieldChange()" /></div>
+          <div class="f"><label>Designation</label><input id="rDesig" placeholder="Team Leader – Premium" oninput="onFieldChange()" /></div>
+          <div class="f"><label>Company</label><input id="rCo" placeholder="Naukri.com" oninput="onFieldChange()" /></div>
+          <div class="f"><label>Calendly / Meeting Link</label><input id="rLink" placeholder="calendly.com/your-link" oninput="onFieldChange()" /></div>
+        </div>
+        <button class="gen-btn local-btn" style="margin-top:11px;font-size:12px;padding:8px;" onclick="saveRec()">Save Identity</button>
+      </div>
+    </div>
+
+    <!-- Candidate -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">🎯</div>Candidate Profile</div>
+      </div>
+      <div class="fg">
+        <div class="f"><label>Full Name *</label><input id="cName" placeholder="Tushar Mehta" oninput="onFieldChange()" /></div>
+        <div class="f"><label>Current Title</label><input id="cTitle" placeholder="Talent Partner" oninput="onFieldChange()" /></div>
+        <div class="f"><label>Email Address</label><input id="cEmail" type="email" placeholder="tushar@gmail.com" /></div>
+        <div class="f"><label>Phone (with country code)</label><input id="cPhone" placeholder="+91 97163..." oninput="updateWALink()" /></div>
+      </div>
+    </div>
+
+    <!-- Job Details -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">💼</div>Job Details</div>
+        <button class="ghost-btn dim" onclick="clearJob()">Clear</button>
+      </div>
+      <div class="fg">
+        <div class="f"><label>Hiring Company *</label><input id="jCo" placeholder="Amazon" oninput="onFieldChange()" /></div>
+        <div class="f"><label>Role Title *</label><input id="jRole" placeholder="Sr. Talent Partner" oninput="onFieldChange()" /></div>
+        <div class="f full"><label>JD / Key Bullet Points</label><textarea id="jDesc" placeholder="Paste job description or key requirements — woven into your outreach automatically." oninput="onFieldChange()"></textarea></div>
+      </div>
+    </div>
+
+    <!-- Tone -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">🎚</div>Outreach Tone</div>
+      </div>
+      <div class="tone-grid">
+        <div class="tone-opt active" onclick="setTone('warm',this)"><span class="t-name">☀️ Warm & Casual</span><span class="t-sub">Friendly, conversational</span></div>
+        <div class="tone-opt" onclick="setTone('formal',this)"><span class="t-name">🏛 Polished / Formal</span><span class="t-sub">Professional, structured</span></div>
+        <div class="tone-opt" onclick="setTone('hook',this)"><span class="t-name">⚡ Direct / Fast-Hook</span><span class="t-sub">Short, punchy, urgent</span></div>
+        <div class="tone-opt" onclick="setTone('exec',this)"><span class="t-name">🔑 Executive / Value</span><span class="t-sub">Outcome-led, strategic</span></div>
+      </div>
+    </div>
+
+    <!-- MODE SWITCHER -->
+    <div class="mode-section">
+      <div class="mode-tabs">
+        <button class="mode-tab active-local" id="tab-local" onclick="setMode('local')">⚡ Smart Local <span style="font-size:10px;opacity:.7;">(Free)</span></button>
+        <button class="mode-tab" id="tab-ai" onclick="setMode('ai')">✨ AI Mode <span style="font-size:10px;opacity:.7;">(API Key)</span></button>
+      </div>
+      <div class="mode-body">
+
+        <!-- LOCAL BODY -->
+        <div id="local-body">
+          <div class="local-note">
+            <strong>Instant template generation</strong> — drafts update live as you type. No API key, no internet needed after load.
+          </div>
+        </div>
+
+        <!-- AI BODY -->
+        <div id="ai-body" style="display:none;">
+          <div class="ai-panel">
+            <div class="ai-note">✨ AI Mode uses your own API key to generate fully dynamic, personalised outreach. Your key stays in your browser and is never stored on any server.</div>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">Select AI Provider</div>
+              <div class="ai-provider-tabs">
+                <div class="prov-btn active" id="prov-claude" onclick="setProvider('claude',this)">🤖 Claude (Anthropic)</div>
+                <div class="prov-btn" id="prov-gemini" onclick="setProvider('gemini',this)">✦ Gemini (Google)</div>
+              </div>
+            </div>
+            <div>
+              <div style="font-size:10px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;">API Key</div>
+              <div class="key-input-wrap">
+                <input type="password" id="apiKey" placeholder="Paste your API key here..." autocomplete="off" />
+                <button class="eye-btn" onclick="toggleKeyVisibility()" title="Show/hide key">👁</button>
+              </div>
+              <div class="key-hint" style="margin-top:5px;" id="key-hint-text">
+                Get a free Claude key at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div id="err-msg" style="display:none;"></div>
+
+    <!-- GENERATE BUTTON -->
+    <button class="gen-btn local-btn" id="gen-btn" onclick="handleGenerate()">
+      ⚡ Templates update live as you type
+    </button>
+
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-col">
+
+    <!-- Draft Card -->
+    <div class="draft-card">
+      <div class="draft-card-head">
+        <div style="font-size:12px;font-weight:600;color:var(--muted);">Communication Draft Center</div>
+        <div style="display:flex;gap:7px;align-items:center;">
+          <span class="local-generated-badge" id="local-badge">⚡ Smart Local</span>
+          <span class="ai-generated-badge" id="ai-badge">✨ AI Generated</span>
+          <button class="copy-btn" onclick="copyActive()" title="Copy active draft">📋 Copy Active</button>
+        </div>
+      </div>
+      <div class="draft-tabs">
+        <button class="dtab active" id="dtab-email" onclick="switchDTab('email',this)">📧 Email Template</button>
+        <button class="dtab" id="dtab-wa" onclick="switchDTab('wa',this)">💬 WhatsApp Quick</button>
+        <button class="dtab" id="dtab-sms" onclick="switchDTab('sms',this)">📱 SMS Copy</button>
+      </div>
+
+      <!-- EMAIL -->
+      <div class="dpane active" id="dp-email">
+        <div id="email-wait" class="waiting">
+          <div class="waiting-ico">✉️</div>
+          <h3>Waiting for Inputs</h3>
+          <p>Fill Candidate Name, Company and Role on the left. Draft appears instantly.</p>
+        </div>
+        <div id="email-gen" class="generating" style="display:none;">
+          <div class="spinner"></div>
+          <span style="font-size:13px;color:var(--muted);">AI is writing your email...</span>
+        </div>
+        <div id="email-out" style="display:none;flex-direction:column;">
+          <div class="draft-meta">
+            <div class="subj-line"><span class="subj-lbl">Subject:</span><span id="email-subj"></span></div>
+            <div class="draft-actions">
+              <span class="char-badge" id="email-cc"></span>
+              <button class="copy-btn" id="copy-email" onclick="copyIt('email')">📋 Copy All</button>
+            </div>
+          </div>
+          <div class="draft-body" id="email-body"></div>
+        </div>
+      </div>
+
+      <!-- WHATSAPP -->
+      <div class="dpane" id="dp-wa">
+        <div id="wa-wait" class="waiting">
+          <div class="waiting-ico">💬</div>
+          <h3>Waiting for Inputs</h3>
+          <p>Your WhatsApp draft appears here the moment you fill in the details.</p>
+        </div>
+        <div id="wa-gen" class="generating" style="display:none;">
+          <div class="spinner"></div>
+          <span style="font-size:13px;color:var(--muted);">AI is writing your WhatsApp message...</span>
+        </div>
+        <div id="wa-out" style="display:none;flex-direction:column;">
+          <div class="draft-meta">
+            <div style="font-size:12px;color:var(--muted);">WhatsApp Quick Message</div>
+            <div class="draft-actions">
+              <span class="char-badge" id="wa-cc"></span>
+              <button class="copy-btn" id="copy-wa" onclick="copyIt('wa')">📋 Copy</button>
+              <a id="wa-open" href="#" target="_blank" class="wa-btn">📲 Open WhatsApp</a>
+            </div>
+          </div>
+          <div class="draft-body" id="wa-body"></div>
+        </div>
+      </div>
+
+      <!-- SMS -->
+      <div class="dpane" id="dp-sms">
+        <div id="sms-wait" class="waiting">
+          <div class="waiting-ico">📱</div>
+          <h3>Waiting for Inputs</h3>
+          <p>SMS copy appears here ready to send.</p>
+        </div>
+        <div id="sms-gen" class="generating" style="display:none;">
+          <div class="spinner"></div>
+          <span style="font-size:13px;color:var(--muted);">AI is writing your SMS...</span>
+        </div>
+        <div id="sms-out" style="display:none;flex-direction:column;">
+          <div class="draft-meta">
+            <div style="font-size:12px;color:var(--muted);">SMS Copy</div>
+            <div class="draft-actions">
+              <span class="char-badge" id="sms-cc"></span>
+              <button class="copy-btn" id="copy-sms" onclick="copyIt('sms')">📋 Copy</button>
+            </div>
+          </div>
+          <div class="draft-body" id="sms-body"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Log -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title"><div class="card-icon">📋</div>Outreach Record & Tracker</div>
+        <div style="display:flex;gap:8px;">
+          <button class="copy-btn" onclick="exportCSV()">⬇ Export CSV</button>
+          <button class="ghost-btn dim" onclick="clearLog()">Clear</button>
+        </div>
+      </div>
+      <div class="log-wrap">
+        <table>
+          <thead><tr><th>Candidate</th><th>Role</th><th>Company</th><th>Methods</th><th>Mode</th><th>Date</th></tr></thead>
+          <tbody id="log-body">
+            <tr><td colspan="6" class="log-empty">No outreaches logged yet. Copy a draft to track it here.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>ReachDraft — Free recruiter outreach generator. No signup needed. Smart Local = instant templates. AI Mode = your own API key.</footer>
+
+<script>
+// ── STATE ──────────────────────────────────────────────────────────
+let tone = 'warm';
+let currentMode = 'local'; // 'local' | 'ai'
+let provider = 'claude';   // 'claude' | 'gemini'
+let rec = JSON.parse(localStorage.getItem('rd_rec') || '{}');
+let log = JSON.parse(localStorage.getItem('rd_log') || '[]');
+let drafts = {email:'', subject:'', wa:'', sms:''};
+let activeTab = 'email';
+let isAIGenerated = false;
+
+// ── INIT ───────────────────────────────────────────────────────────
+(function(){
+  if(rec.name){ setRecFields(); updateRecView(); } else { toggleRecEdit(true); }
+  renderLog();
+  updateGenBtn();
+})();
+
+// ── RECRUITER ──────────────────────────────────────────────────────
+function toggleRecEdit(forceOpen){
+  const edit = document.getElementById('rec-edit');
+  const view = document.getElementById('rec-view');
+  const btn  = document.getElementById('rec-toggle');
+  const open = forceOpen !== undefined ? forceOpen : edit.style.display==='none';
+  edit.style.display = open ? 'block' : 'none';
+  view.style.display = open ? 'none'  : 'grid';
+  btn.textContent = open ? 'Cancel' : 'Edit';
+}
+function setRecFields(){
+  document.getElementById('rName').value  = rec.name  || '';
+  document.getElementById('rDesig').value = rec.desig || '';
+  document.getElementById('rCo').value    = rec.co    || '';
+  document.getElementById('rLink').value  = rec.link  || '';
+}
+function saveRec(){
+  rec = {
+    name:  v('rName'),
+    desig: v('rDesig'),
+    co:    v('rCo'),
+    link:  v('rLink')
+  };
+  localStorage.setItem('rd_rec', JSON.stringify(rec));
+  updateRecView();
+  toggleRecEdit(false);
+  onFieldChange();
+}
+function updateRecView(){
+  const set=(id,val)=>{
+    const el=document.getElementById(id);
+    el.textContent=val||'Not set';
+    el.className='r-val'+(val?'':' empty');
+  };
+  set('rv-name',rec.name); set('rv-desig',rec.desig);
+  set('rv-co',rec.co); set('rv-link',rec.link);
+}
+
+// ── TONE ───────────────────────────────────────────────────────────
+function setTone(t, el){
+  tone=t;
+  document.querySelectorAll('.tone-opt').forEach(e=>e.classList.remove('active'));
+  el.classList.add('active');
+  onFieldChange();
+}
+
+// ── MODE ───────────────────────────────────────────────────────────
+function setMode(m){
+  currentMode = m;
+  document.getElementById('local-body').style.display = m==='local' ? 'block' : 'none';
+  document.getElementById('ai-body').style.display    = m==='ai'    ? 'block' : 'none';
+  const tl = document.getElementById('tab-local');
+  const ta = document.getElementById('tab-ai');
+  tl.className = 'mode-tab' + (m==='local' ? ' active-local' : '');
+  ta.className = 'mode-tab' + (m==='ai'    ? ' active-ai'    : '');
+  updateGenBtn();
+  if(m==='local') onFieldChange(); // re-render local templates
+}
+
+function setProvider(p, el){
+  provider = p;
+  document.querySelectorAll('.prov-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const hint = document.getElementById('key-hint-text');
+  if(p==='claude'){
+    hint.innerHTML='Get a free key at <a href="https://console.anthropic.com/" target="_blank">console.anthropic.com</a>';
+  } else {
+    hint.innerHTML='Get a free key at <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a>';
+  }
+}
+
+function updateGenBtn(){
+  const btn = document.getElementById('gen-btn');
+  if(currentMode==='local'){
+    btn.className='gen-btn local-btn';
+    btn.textContent='⚡ Templates update live as you type';
+    btn.disabled=true;
+  } else {
+    btn.className='gen-btn ai-btn';
+    btn.innerHTML='✨ Generate with AI';
+    btn.disabled=false;
+  }
+}
+
+function toggleKeyVisibility(){
+  const inp = document.getElementById('apiKey');
+  inp.type = inp.type==='password' ? 'text' : 'password';
+}
+
+// ── FIELD HELPERS ──────────────────────────────────────────────────
+function v(id){ return (document.getElementById(id)||{}).value?.trim()||''; }
+function clearJob(){ ['jCo','jRole','jDesc'].forEach(id=>document.getElementById(id).value=''); onFieldChange(); }
+function onFieldChange(){ if(currentMode==='local') regenLocal(); }
+
+// ── TAB ────────────────────────────────────────────────────────────
+function switchDTab(tab, btn){
+  activeTab=tab;
+  document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('active','ai-active'));
+  btn.classList.add('active');
+  if(isAIGenerated) btn.classList.add('ai-active');
+  document.querySelectorAll('.dpane').forEach(p=>p.classList.remove('active'));
+  document.getElementById('dp-'+tab).classList.add('active');
+}
+
+// ── HANDLE GENERATE ────────────────────────────────────────────────
+function handleGenerate(){
+  if(currentMode==='ai') generateAI();
+}
+
+// ── SHOW / HIDE STATES ─────────────────────────────────────────────
+function showState(type, state){ // state: 'wait' | 'gen' | 'out'
+  ['wait','gen','out'].forEach(s=>{
+    const el = document.getElementById(type+'-'+s);
+    if(!el) return;
+    if(s==='out'){
+      el.style.display = state===s ? 'flex' : 'none';
+      if(state===s) el.style.flexDirection='column';
+    } else {
+      el.style.display = state===s ? 'flex' : 'none';
+    }
+  });
+}
+function showAllWaiting(){
+  ['email','wa','sms'].forEach(t=>showState(t,'wait'));
+}
+function showAllGenerating(){
+  ['email','wa','sms'].forEach(t=>showState(t,'gen'));
+}
+
+// ── POPULATE DRAFTS ────────────────────────────────────────────────
+function populateDrafts(d, aiMode){
+  drafts = d;
+  isAIGenerated = !!aiMode;
+
+  document.getElementById('local-badge').style.display = aiMode ? 'none'   : 'inline-block';
+  document.getElementById('ai-badge').style.display    = aiMode ? 'inline-block' : 'none';
+
+  document.getElementById('email-subj').textContent = d.subject;
+  document.getElementById('email-body').textContent = d.email;
+  document.getElementById('email-cc').textContent   = d.email.length + ' chars';
+  showState('email','out');
+
+  document.getElementById('wa-body').textContent = d.wa;
+  document.getElementById('wa-cc').textContent   = d.wa.length + ' chars';
+  updateWALink();
+  showState('wa','out');
+
+  document.getElementById('sms-body').textContent = d.sms;
+  const smsLen = d.sms.length;
+  const smsCC  = document.getElementById('sms-cc');
+  smsCC.textContent = smsLen + ' / 160 chars';
+  smsCC.style.color = smsLen>160 ? '#a32d2d' : 'var(--faint)';
+  showState('sms','out');
+
+  // re-colour active tab
+  document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('ai-active'));
+  if(aiMode) document.getElementById('dtab-'+activeTab).classList.add('ai-active');
+}
+
+function updateWALink(){
+  const phone = document.getElementById('cPhone').value.replace(/\D/g,'');
+  document.getElementById('wa-open').href = 'https://wa.me/'+(phone||'')+'?text='+encodeURIComponent(drafts.wa||'');
+}
+
+// ── SMART LOCAL TEMPLATES ──────────────────────────────────────────
+function buildJDSnippet(){
+  const jd=v('jDesc');
+  if(!jd) return '';
+  const lines=jd.split('\n').map(l=>l.replace(/^[-•*]\s*/,'')).filter(l=>l.length>10).slice(0,2);
+  return lines.length ? ' The role involves ' + lines.join(' and ') + '.' : '';
+}
+
+function getTemplates(){
+  const cName  = v('cName')  || '[Candidate]';
+  const cTitle = v('cTitle') || v('jRole') || 'your background';
+  const jCo    = v('jCo')   || '[Company]';
+  const jRole  = v('jRole') || '[Role]';
+  const rName  = rec.name  || '[Your Name]';
+  const rDesig = rec.desig || 'Recruiter';
+  const rCo    = rec.co    || 'our company';
+  const link   = rec.link  || '[your booking link]';
+  const jdSnip = buildJDSnippet();
+  const first  = cName.split(' ')[0];
+
+  const T = {
+    warm:{
+      subject:`Hey ${first} — Exciting ${jRole} opportunity at ${jCo}`,
+      email:`Hi ${first},\n\nI came across your profile and your experience as a ${cTitle} really caught my attention. We're currently looking for a talented ${jRole} to join the team at ${jCo}, and I genuinely think you could be a great fit.${jdSnip}\n\nYour background aligns well with what we have planned for the quarters ahead, and I'd love to get on a quick call to learn more about where you're headed.\n\nWould you be open to a 20-minute chat? You can book a slot directly here: ${link}\n\nLooking forward to connecting!\n\nWarm regards,\n${rName}\n${rDesig} | ${rCo}`,
+      wa:`Hi ${first}! 👋\n\nI'm ${rName} from ${rCo}. I came across your profile and loved your background as a ${cTitle}.\n\nWe have an exciting *${jRole}* opening at *${jCo}* that I think could be a great next step for you.${jdSnip}\n\nWould you be open to a quick 20-min call this week? 😊\n\nBook here: ${link}`,
+      sms:`Hi ${first}, this is ${rName} from ${rCo}. Exciting ${jRole} role at ${jCo} — fits your profile. Open to a quick call? ${link}`
+    },
+    formal:{
+      subject:`${jRole} Opportunity at ${jCo} — ${cName}`,
+      email:`Dear ${cName},\n\nI hope this message finds you well. I am reaching out regarding a ${jRole} position at ${jCo} that I believe aligns strongly with your professional profile and experience as a ${cTitle}.${jdSnip}\n\nGiven your background, I feel this could be a compelling opportunity to explore. I would welcome the chance to connect for a brief discussion at your convenience.\n\nPlease feel free to schedule a call using the link below:\n${link}\n\nI look forward to hearing from you.\n\nBest regards,\n${rName}\n${rDesig} | ${rCo}`,
+      wa:`Dear ${first},\n\nI am ${rName}, ${rDesig} at ${rCo}. I am reaching out regarding a *${jRole}* opportunity at *${jCo}* that closely aligns with your experience as a ${cTitle}.${jdSnip}\n\nI would appreciate the opportunity to connect. Kindly schedule a brief discussion here:\n${link}`,
+      sms:`Dear ${cName}, ${rName} (${rCo}) here. ${jRole} opportunity at ${jCo} — strong match. Please connect: ${link}`
+    },
+    hook:{
+      subject:`${first} — ${jRole} at ${jCo} | Quick question`,
+      email:`Hi ${first},\n\nQuick one — are you open to a ${jRole} role at ${jCo}?\n\nYour profile as a ${cTitle} is exactly what they're looking for.${jdSnip} Strong comp, great team.\n\n15-minute call? → ${link}\n\n— ${rName}, ${rCo}`,
+      wa:`Hey ${first}! ⚡\n\n*${jRole} at ${jCo}* — your profile is a strong match.${jdSnip}\n\n15 mins this week? → ${link}\n\n– ${rName}, ${rCo}`,
+      sms:`${first} — ${jRole} at ${jCo}, strong fit. 15-min call? → ${link} – ${rName}`
+    },
+    exec:{
+      subject:`Strategic ${jRole} Role | ${jCo} — Built for your level`,
+      email:`Hi ${first},\n\nI'll be direct — ${jCo} is building out a key function and the ${jRole} role is central to that growth agenda.${jdSnip}\n\nGiven your track record as a ${cTitle}, I believe you bring the depth this mandate demands. The scope, compensation, and visibility are aligned with senior hires at this level.\n\nI'd value 20 minutes of your time to walk you through the details.\n\nCalendar link: ${link}\n\nRegards,\n${rName}\n${rDesig} | ${rCo}`,
+      wa:`Hi ${first},\n\n${rName} here from ${rCo}.\n\n*${jCo}* is building a key function and the *${jRole}* role is central to their growth agenda.${jdSnip} The scope and seniority align with your level as a ${cTitle}.\n\nWorth a 20-min conversation? Book here: ${link}`,
+      sms:`${first}, ${jCo}'s ${jRole} mandate — senior scope, strong comp. Built for your level. Worth 20 mins: ${link} — ${rName}`
+    }
+  };
+  return T[tone]||T.warm;
+}
+
+function regenLocal(){
+  if(!v('cName')||!v('jCo')||!v('jRole')){ showAllWaiting(); return; }
+  populateDrafts(getTemplates(), false);
+}
+
+// ── AI GENERATION ──────────────────────────────────────────────────
+async function generateAI(){
+  const cName=v('cName'), jCo=v('jCo'), jRole=v('jRole');
+  if(!cName||!jCo||!jRole){ showErr('Please fill in Candidate Name, Company, and Role.'); return; }
+
+  const apiKey=document.getElementById('apiKey').value.trim();
+  if(!apiKey){ showErr('Please paste your '+( provider==='claude'?'Claude':'Gemini' )+' API key in the AI Mode panel.'); return; }
+
+  const toneDesc={
+    warm:'warm, casual and friendly — like a colleague reaching out, conversational, first-name basis',
+    formal:'professional, polished and formal — suitable for senior roles, full names, structured paragraphs',
+    hook:'ultra-short, punchy, fast-hook — 2-3 sentences max, creates immediate curiosity, direct ask',
+    exec:'executive tone, outcome-led and value-first — speaks to ROI and strategic alignment, zero fluff'
+  }[tone];
+
+  const cTitle=v('cTitle')||jRole;
+  const jDesc=v('jDesc');
+  const rName=rec.name||'[Recruiter]';
+  const rDesig=rec.desig||'Recruiter';
+  const rCo=rec.co||'our company';
+  const link=rec.link||'[booking link]';
+
+  const prompt=`You are an expert recruiter outreach specialist. Generate 3 personalised outreach messages — Email, WhatsApp, and SMS.
+
+RECRUITER: ${rName} | ${rDesig} | ${rCo} | Meeting link: ${link}
+CANDIDATE: ${cName} | Current/Target title: ${cTitle}
+JOB: ${jRole} at ${jCo}${jDesc?'\nKey details: '+jDesc:''}
+TONE: ${toneDesc}
+
+Return ONLY valid JSON, no markdown fences, no extra text:
+{"emailSubject":"...","email":"full email body with greeting and sign-off","whatsapp":"100-150 words, emojis used sparingly","sms":"under 160 characters, direct CTA"}
+
+Rules: use actual names (not placeholders), include meeting link naturally, make it sound human not AI-generated, SMS must be under 160 chars.`;
+
+  document.getElementById('gen-btn').disabled=true;
+  document.getElementById('gen-btn').textContent='⏳ Generating...';
+  showAllGenerating();
+  clearErr();
+
+  try{
+    let result;
+    if(provider==='claude'){
+      result = await callClaude(apiKey, prompt);
+    } else {
+      result = await callGemini(apiKey, prompt);
+    }
+
+    const clean=result.replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(clean);
+    populateDrafts({
+      email:   parsed.email        || '',
+      subject: parsed.emailSubject || '',
+      wa:      parsed.whatsapp     || '',
+      sms:     parsed.sms          || ''
+    }, true);
+
+    logEntry(cName, v('cPhone'), jRole, jCo, 'AI·'+provider);
+
+  } catch(err){
+    showAllWaiting();
+    showErr('Error: '+ err.message + (err.message.includes('401')||err.message.includes('403') ? ' — check your API key.' : ''));
+  }
+
+  document.getElementById('gen-btn').disabled=false;
+  document.getElementById('gen-btn').innerHTML='✨ Generate with AI';
+}
+
+async function callClaude(apiKey, prompt){
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':apiKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-sonnet-4-20250514',
+      max_tokens:1500,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  if(!res.ok){ const e=await res.json(); throw new Error(e.error?.message||'Claude API error '+res.status); }
+  const data=await res.json();
+  return data.content.map(b=>b.text||'').join('');
+}
+
+async function callGemini(apiKey, prompt){
+  const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})
+  });
+  if(!res.ok){ const e=await res.json(); throw new Error(e.error?.message||'Gemini API error '+res.status); }
+  const data=await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+}
+
+// ── COPY ───────────────────────────────────────────────────────────
+function copyIt(type){
+  const textMap={
+    email:'Subject: '+drafts.subject+'\n\n'+drafts.email,
+    wa:   drafts.wa,
+    sms:  drafts.sms
+  };
+  const txt=textMap[type]||'';
+  if(!txt) return;
+  navigator.clipboard.writeText(txt).then(()=>{
+    const btn=document.getElementById('copy-'+type);
+    btn.textContent='✓ Copied!'; btn.classList.add('ok');
+    setTimeout(()=>{ btn.textContent='📋 Copy'+(type==='email'?' All':''); btn.classList.remove('ok'); },1800);
+    logCopy(type);
+  });
+}
+function copyActive(){ copyIt(activeTab); }
+
+// ── LOG ────────────────────────────────────────────────────────────
+function logEntry(name, phone, role, co, mode){
+  const existing=log.find(l=>l.name===name&&l.co===co&&l.role===role);
+  if(!existing){
+    log.unshift({name,phone:phone||'',role,co,methods:[],mode:mode||'local',date:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short'})});
+    if(log.length>100) log=log.slice(0,100);
+    localStorage.setItem('rd_log',JSON.stringify(log));
+    renderLog();
+  }
+}
+function logCopy(method){
+  const cName=v('cName'),jCo=v('jCo'),jRole=v('jRole');
+  if(!cName) return;
+  const label={email:'Email',wa:'WhatsApp',sms:'SMS'}[method];
+  let entry=log.find(l=>l.name===cName&&l.co===jCo&&l.role===jRole);
+  if(!entry){
+    logEntry(cName,v('cPhone'),jRole,jCo,isAIGenerated?'AI·'+provider:'local');
+    entry=log[0];
+  }
+  if(entry&&!entry.methods.includes(label)){ entry.methods.push(label); localStorage.setItem('rd_log',JSON.stringify(log)); renderLog(); }
+}
+function renderLog(){
+  const tbody=document.getElementById('log-body');
+  if(!log.length){ tbody.innerHTML='<tr><td colspan="6" class="log-empty">No outreaches logged yet. Copy a draft to track it here.</td></tr>'; return; }
+  tbody.innerHTML=log.map(e=>`<tr>
+    <td><strong>${e.name}</strong>${e.phone?`<br><span style="font-size:11px;color:var(--faint)">${e.phone}</span>`:''}</td>
+    <td>${e.role}</td><td>${e.co}</td>
+    <td>${(e.methods||[]).map(m=>`<span class="mbadge ${m==='Email'?'mb-e':m==='WhatsApp'?'mb-w':'mb-s'}">${m}</span>`).join('')||'<span style="color:var(--faint);font-size:11px;">—</span>'}</td>
+    <td><span class="mbadge ${(e.mode||'').startsWith('AI')?'mb-ai':''}" style="${!(e.mode||'').startsWith('AI')?'background:var(--green-light);color:var(--green-dark)':''}">${(e.mode||'').startsWith('AI')?'✨ AI':'⚡ Local'}</span></td>
+    <td style="color:var(--faint);font-size:12px;">${e.date}</td>
+  </tr>`).join('');
+}
+function clearLog(){ if(!confirm('Clear all outreach history?')) return; log=[]; localStorage.setItem('rd_log','[]'); renderLog(); }
+function exportCSV(){
+  if(!log.length) return;
+  const rows=[['Candidate','Phone','Role','Company','Methods','Mode','Date']];
+  log.forEach(e=>rows.push([e.name,e.phone||'',e.role,e.co,(e.methods||[]).join('; '),e.mode||'',e.date]));
+  const csv=rows.map(r=>r.map(c=>'"'+(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='outreach_log_'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();
+}
+
+// ── ALERTS ────────────────────────────────────────────────────────
+function showErr(msg){ const el=document.getElementById('err-msg'); el.innerHTML=`<div class="alert alert-err">${msg}</div>`; el.style.display='block'; setTimeout(()=>el.style.display='none',5000); }
+function clearErr(){ document.getElementById('err-msg').style.display='none'; }
+</script>
+</body>
+</html>
