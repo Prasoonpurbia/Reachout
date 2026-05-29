@@ -740,12 +740,19 @@ function renderLog(){
 }
 function clearLog(){if(!confirm('Clear all outreach history?'))return;log=[];localStorage.setItem('rd_log','[]');renderLog();}
 function exportCSV(){
-  if(!log.length)return;
+  if(!log.length){alert('No outreach records to export yet. Copy a draft first to log it.');return;}
   const rows=[['Candidate','Phone','Role','Company','Methods','Mode','Date']];
   log.forEach(e=>rows.push([e.name,e.phone||'',e.role,e.co,(e.methods||[]).join('; '),e.mode||'',e.date]));
   const csv=rows.map(r=>r.map(c=>'"'+(c||'').replace(/"/g,'""')+'"').join(',')).join('\n');
-  const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
-  a.download='outreach_log_'+new Date().toISOString().slice(0,10)+'.csv';a.click();
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='outreach_log_'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 function showErr(msg){const el=document.getElementById('err-msg');el.innerHTML=`<div class="alert alert-err">${msg}</div>`;el.style.display='block';setTimeout(()=>el.style.display='none',5000);}
 function clearErr(){document.getElementById('err-msg').style.display='none';}
