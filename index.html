@@ -150,6 +150,12 @@ tr:hover td{background:#fafaf6;}
 .mb-l{background:var(--blue-light);color:var(--blue-dark);}
 .mb-ai{background:var(--purple-light);color:var(--purple-dark);}
 
+.subj-chip{padding:6px 10px;border:1.5px solid var(--border-strong);border-radius:var(--radius-sm);font-size:12px;cursor:pointer;background:#fff;color:var(--text);transition:all .15s;text-align:left;font-family:'Inter',sans-serif;line-height:1.4;}
+.subj-chip:hover{border-color:var(--green);background:var(--green-light);color:var(--green-dark);}
+.subj-chip.active{border-color:var(--green);background:var(--green-light);color:var(--green-dark);font-weight:600;}
+.subj-chip.li-chip:hover{border-color:var(--blue);background:var(--blue-light);color:var(--blue-dark);}
+.subj-chip.li-chip.active{border-color:var(--blue);background:var(--blue-light);color:var(--blue-dark);font-weight:600;}
+
 .gs-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;font-size:12px;font-weight:600;border:none;border-radius:var(--radius-sm);background:#1a9e6f;color:white;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s;white-space:nowrap;}
 .gs-btn:hover{background:#137a56;}
 
@@ -318,8 +324,13 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:12px
         </div>
         <div id="email-gen" class="generating" style="display:none;"><div class="spinner"></div><span style="font-size:13px;color:var(--muted);">AI is writing your email...</span></div>
         <div id="email-out" style="display:none;flex-direction:column;">
+          <!-- Subject line picker -->
+          <div style="padding:10px 13px;border-bottom:1px solid var(--border);background:#fafafa;">
+            <div style="font-size:10px;font-weight:700;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;margin-bottom:7px;">Subject Line — pick one</div>
+            <div id="email-subj-options" style="display:flex;flex-direction:column;gap:5px;"></div>
+          </div>
           <div class="draft-meta">
-            <div class="subj-line"><span class="subj-lbl">Subject:</span><span id="email-subj"></span></div>
+            <div class="subj-line"><span class="subj-lbl">Selected:</span><span id="email-subj" style="font-weight:600;color:var(--green-dark);"></span></div>
             <div class="draft-actions">
               <span class="char-badge" id="email-cc"></span>
               <button class="copy-btn" id="copy-email" onclick="copyIt('email')">📋 Copy All</button>
@@ -349,10 +360,11 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:12px
           </div>
           <!-- InMail -->
           <div style="padding:10px 13px;border-bottom:1px solid var(--border);background:#fafafa;">
-            <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">📩 LinkedIn InMail / Message</div>
+            <div style="font-size:11px;font-weight:700;color:var(--blue);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px;">📩 LinkedIn InMail Subject — pick one</div>
+            <div id="li-subj-options" style="display:flex;flex-direction:column;gap:5px;"></div>
           </div>
           <div class="draft-meta">
-            <div class="subj-line"><span class="subj-lbl">Subject:</span><span id="li-subj"></span></div>
+            <div class="subj-line"><span class="subj-lbl">Selected:</span><span id="li-subj" style="font-weight:600;color:var(--blue-dark);"></span></div>
             <div class="draft-actions">
               <span class="char-badge" id="li-cc"></span>
               <button class="copy-btn" id="copy-li" onclick="copyIt('li')">📋 Copy InMail</button>
@@ -542,18 +554,28 @@ function populateDrafts(d,aiMode){
   document.getElementById('ai-badge').style.display=aiMode?'inline-block':'none';
 
   // Email
-  document.getElementById('email-subj').textContent=d.subject;
+  const first=d.email.split('\n')[0].replace('Hi ','').replace(',','').trim()||v('cName').split(' ')[0];
+  emailSubjects = getEmailSubjects(v('cName').split(' ')[0]||'there', v('jCo'), v('jRole'), v('cTitle'));
+  // if AI generated, use AI subject as first option
+  if(aiMode && d.subject) emailSubjects[0]=d.subject;
+  renderSubjectPicker('email-subj-options', emailSubjects, 'email-subj', false);
+  drafts.subject=emailSubjects[0];
+  document.getElementById('email-subj').textContent=emailSubjects[0];
   document.getElementById('email-body').textContent=d.email;
   document.getElementById('email-cc').textContent=d.email.length+' chars';
   showState('email','out');
 
   // LinkedIn
+  liSubjects = getLiSubjects(v('cName').split(' ')[0]||'there', v('jCo'), v('jRole'));
+  if(aiMode && d.liSubject) liSubjects[0]=d.liSubject;
+  renderSubjectPicker('li-subj-options', liSubjects, 'li-subj', true);
+  drafts.liSubject=liSubjects[0];
+  document.getElementById('li-subj').textContent=liSubjects[0];
   document.getElementById('li-connect-body').textContent=d.liConnect;
   const lcLen=d.liConnect.length;
   const lcCC=document.getElementById('li-connect-cc');
   lcCC.textContent=lcLen+' / 300 chars';
   lcCC.style.color=lcLen>300?'#a32d2d':'var(--faint)';
-  document.getElementById('li-subj').textContent=d.liSubject;
   document.getElementById('li-body').textContent=d.li;
   document.getElementById('li-cc').textContent=d.li.length+' chars';
   const cName=v('cName');
@@ -587,6 +609,45 @@ function buildJDSnippet(){
   const jd=v('jDesc');if(!jd)return'';
   const lines=jd.split('\n').map(l=>l.replace(/^[-•*]\s*/,'')).filter(l=>l.length>10).slice(0,2);
   return lines.length?' The role involves '+lines.join(' and ')+'.':'';
+}
+
+function renderSubjectPicker(containerId, subjects, activeId, isLI){
+  const container=document.getElementById(containerId);
+  if(!container) return;
+  container.innerHTML=subjects.map((s,i)=>`
+    <button class="subj-chip${isLI?' li-chip':''}${i===0?' active':''}" onclick="selectSubject('${containerId}','${activeId}',this,'${isLI?'li':'email'}',${i})">${s}</button>
+  `).join('');
+}
+
+let emailSubjects=[], liSubjects=[];
+
+function selectSubject(containerId, activeId, el, type, idx){
+  document.querySelectorAll('#'+containerId+' .subj-chip').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const chosen = type==='li' ? liSubjects[idx] : emailSubjects[idx];
+  document.getElementById(activeId).textContent = chosen;
+  if(type==='email') drafts.subject = chosen;
+  else drafts.liSubject = chosen;
+}
+
+function getEmailSubjects(first, jCo, jRole, cTitle){
+  return [
+    `${first}, thought of you for something at ${jCo}`,
+    `${jRole} at ${jCo} — worth a quick look?`,
+    `${first}, is this the right time for a move?`,
+    `A ${jRole} role at ${jCo} that fits your background`,
+    `${jCo} is hiring a ${jRole} — your profile stood out`
+  ];
+}
+
+function getLiSubjects(first, jCo, jRole){
+  return [
+    `${first}, your profile caught my eye for something at ${jCo}`,
+    `${jRole} at ${jCo} — believe this aligns with your profile`,
+    `${first}, is this the right time for a move to ${jCo}?`,
+    `A ${jRole} mandate at ${jCo} built for your level`,
+    `Quick question about a ${jRole} opening at ${jCo}`
+  ];
 }
 
 function getTemplates(){
