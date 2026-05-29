@@ -717,38 +717,38 @@ function getTemplates(){
   const liInMailTemplates={
     warm:{
       subject:`${first}, your profile caught my eye for something at ${jCo}`,
-      body:`Hi ${first},\n\nI came across your profile and your background as a ${cTitle} immediately stood out to me.${jdSnip}\n\nWe are currently looking for a ${jRole} at ${jCo}, and based on what I can see, I genuinely think you could be a strong fit for this one.\n\nWould you be open to a quick 20-minute call? I'd love to share more details and also hear where you are headed next.\n\nYou can book a time that works for you here: ${link}\n\nLooking forward to hearing from you!\n\n${rName}\n${rDesig} | ${rCo}`
+      body:`Hi ${first},\n\nHope you are doing well! I noticed your profile and your background as a ${cTitle} immediately stood out to me.${jdSnip}\n\nWe are currently looking for a ${jRole} at ${jCo}, and based on what I can see, I genuinely think you could be a strong fit for this one.\n\nWould you be open to a quick 20-minute call? I would love to share more details and also hear where you are headed next.${link&&link!=='[your booking link]'?'\n\nYou can book a time here: '+link:''}\n\nLooking forward to hearing from you!\n\n${rName}\n${rDesig} | ${rCo}`
     },
     formal:{
       subject:`${jRole} at ${jCo} | Believe this aligns with your profile`,
-      body:`Dear ${cName},\n\nI am writing to you regarding a ${jRole} position at ${jCo} that I believe is closely aligned with your professional experience as a ${cTitle}.${jdSnip}\n\nI would appreciate the opportunity to connect for a brief discussion at your convenience to share further details about this role.\n\nPlease feel free to schedule a call here: ${link}\n\nBest regards,\n${rName}\n${rDesig} | ${rCo}`
+      body:`Dear ${cName},\n\nHope this message finds you well. I am writing having come across your profile — your experience as a ${cTitle} aligns closely with a ${jRole} position at ${jCo}.${jdSnip}\n\nI would appreciate the opportunity to connect for a brief discussion at your convenience.${link&&link!=='[your booking link]'?'\n\nPlease feel free to schedule a call here: '+link:''}\n\nBest regards,\n${rName}\n${rDesig} | ${rCo}`
     },
     hook:{
       subject:`${first}, is this the right time for a move to ${jCo}?`,
-      body:`Hi ${first},\n\n${jRole} at ${jCo} and your profile as a ${cTitle} is exactly what they are looking for.${jdSnip}\n\nWorth a 15-min conversation this week? Book here: ${link}\n\n${rName}, ${rCo}`
+      body:`Hi ${first},\n\nHope you are doing well! I noticed your background as a ${cTitle} and wanted to reach out directly.\n\n${jRole} at ${jCo} and your profile is exactly what they are looking for.${jdSnip}\n\nWorth a 15-minute conversation this week?${link&&link!=='[your booking link]'?' Book here: '+link:''}\n\n${rName}, ${rCo}`
     },
     exec:{
       subject:`A ${jRole} mandate at ${jCo} built for someone at your level`,
-      body:`Hi ${first},\n\n${jCo} is building out a key function and the ${jRole} role sits right at the centre of that agenda.${jdSnip}\n\nYour track record as a ${cTitle} is the kind of profile they have asked me to look for specifically. The scope, visibility, and compensation are aligned with senior hires at this level.\n\nWorth 20 minutes to hear the details? Book here: ${link}\n\n${rName}\n${rDesig} | ${rCo}`
+      body:`Hi ${first},\n\nHope you are doing well. I noticed your track record as a ${cTitle} and felt this mandate was worth reaching out about directly.\n\n${jCo} is building out a key function and the ${jRole} role sits right at the centre of that agenda.${jdSnip} The scope, visibility, and compensation are aligned with senior hires at this level.\n\nWorth 20 minutes to hear the details?${link&&link!=='[your booking link]'?' Book here: '+link:''}\n\n${rName}\n${rDesig} | ${rCo}`
     }
   };
 
   const emailT={
     warm:{
       subject:`${first}, thought of you for something at ${jCo}`,
-      email:`Hi ${first},\n\nI came across your profile and your experience as a ${cTitle} really caught my attention. We are currently looking for a ${jRole} at ${jCo} and I genuinely think you could be a strong fit.${jdSnip}\n\nI would love to get on a quick call to share more about the role and also hear where you are headed. Are you open to a 20-minute chat this week?${link&&link!=='[your booking link]'?'\n\nYou can book a time directly here: '+link:''}\n\nLooking forward to connecting!\n\nWarm regards,\n${rName}\n${rDesig} | ${rCo}`
+      email:`Hi ${first},\n\nHope you are doing well! I noticed your profile and your experience as a ${cTitle} really caught my attention. We are currently looking for a ${jRole} at ${jCo} and I genuinely think you could be a strong fit.${jdSnip}\n\nI would love to get on a quick call to share more about the role and also hear where you are headed. Are you open to a 20-minute chat this week?${link&&link!=='[your booking link]'?'\n\nYou can book a time directly here: '+link:''}\n\nLooking forward to connecting!\n\nWarm regards,\n${rName}\n${rDesig} | ${rCo}`
     },
     formal:{
       subject:`${jRole} at ${jCo} | Opportunity aligned with your profile`,
-      email:`Dear ${cName},\n\nI hope this message finds you well. I am reaching out regarding a ${jRole} position at ${jCo} that I believe is well aligned with your experience as a ${cTitle}.${jdSnip}\n\nI would welcome the opportunity to connect briefly at your convenience to share further details about this role.${link&&link!=='[your booking link]'?'\n\nPlease feel free to schedule a call here: '+link:''}\n\nBest regards,\n${rName}\n${rDesig} | ${rCo}`
+      email:`Dear ${cName},\n\nHope this message finds you well. I am reaching out having come across your profile and your experience as a ${cTitle} closely aligns with a ${jRole} position we are working on at ${jCo}.${jdSnip}\n\nI would welcome the opportunity to connect briefly at your convenience to share further details about this role.${link&&link!=='[your booking link]'?'\n\nPlease feel free to schedule a call here: '+link:''}\n\nBest regards,\n${rName}\n${rDesig} | ${rCo}`
     },
     hook:{
       subject:`${first}, is this the right time for a move?`,
-      email:`Hi ${first},\n\nQuick one. Are you open to a ${jRole} role at ${jCo}?\n\nYour profile as a ${cTitle} is exactly the kind of background they are looking for.${jdSnip} Strong comp, good team, and real scope.\n\nHappy to jump on a 15-minute call if you are curious.${link&&link!=='[your booking link]'?' Book here: '+link:''}\n\n${rName}\n${rCo}`
+      email:`Hi ${first},\n\nHope you are doing well! I noticed your background as a ${cTitle} and wanted to reach out directly.\n\nQuick one. Are you open to a ${jRole} role at ${jCo}?${jdSnip} Strong comp, good team, and real scope.\n\nHappy to jump on a 15-minute call if you are curious.${link&&link!=='[your booking link]'?' Book here: '+link:''}\n\n${rName}\n${rCo}`
     },
     exec:{
       subject:`A ${jRole} mandate at ${jCo} worth 20 minutes of your time`,
-      email:`Hi ${first},\n\nI will keep this brief. ${jCo} is building out a critical function and the ${jRole} role is central to that agenda.${jdSnip}\n\nYour background as a ${cTitle} is exactly the kind of profile they have asked me to find. The scope, compensation, and visibility are calibrated for a senior hire.\n\nI would value 20 minutes to walk you through the details.${link&&link!=='[your booking link]'?' Book here: '+link:''}\n\nRegards,\n${rName}\n${rDesig} | ${rCo}`
+      email:`Hi ${first},\n\nHope you are doing well. I noticed your track record as a ${cTitle} and felt this was worth reaching out about directly.\n\n${jCo} is building out a critical function and the ${jRole} role is central to that agenda.${jdSnip} The scope, compensation, and visibility are calibrated for a senior hire.\n\nI would value 20 minutes to walk you through the details.${link&&link!=='[your booking link]'?' Book here: '+link:''}\n\nRegards,\n${rName}\n${rDesig} | ${rCo}`
     }
   };
   const waT={
