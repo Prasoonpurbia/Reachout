@@ -560,7 +560,10 @@ function buildJDSnippet(){
 function getTemplates(){
   const cName=v('cName')||'[Candidate]',cTitle=v('cTitle')||v('jRole')||'your background';
   const jCo=v('jCo')||'[Company]',jRole=v('jRole')||'[Role]';
-  const rName=rec.name||'[Your Name]',rDesig=rec.desig||'Recruiter',rCo=rec.co||'our company',link=rec.link||'[your booking link]';
+  const rName=v('rName')||rec.name||'[Your Name]';
+  const rDesig=v('rDesig')||rec.desig||'Recruiter';
+  const rCo=v('rCo')||rec.co||'our company';
+  const link=v('rLink')||rec.link||'[your booking link]';
   const jdSnip=buildJDSnippet(),first=cName.split(' ')[0];
 
   const liConnectTemplates={
