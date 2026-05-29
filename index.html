@@ -150,6 +150,9 @@ tr:hover td{background:#fafaf6;}
 .mb-l{background:var(--blue-light);color:var(--blue-dark);}
 .mb-ai{background:var(--purple-light);color:var(--purple-dark);}
 
+.gs-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;font-size:12px;font-weight:600;border:none;border-radius:var(--radius-sm);background:#1a9e6f;color:white;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s;white-space:nowrap;}
+.gs-btn:hover{background:#137a56;}
+
 .alert{padding:8px 11px;border-radius:var(--radius-sm);font-size:12px;margin-bottom:5px;}
 .alert-err{background:#fcebeb;color:#a32d2d;border:1px solid #f7c1c1;}
 
@@ -407,16 +410,41 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:12px
     <div class="card">
       <div class="card-head">
         <div class="card-title"><div class="card-icon">📋</div>Outreach Record & Tracker</div>
-        <div style="display:flex;gap:7px;">
-          <button class="copy-btn" onclick="exportCSV()">⬇ Export CSV</button>
+        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+          <button class="gs-btn" onclick="showGSSetup()">🟢 Export to Google Sheets</button>
+          <button class="copy-btn" onclick="exportCSV()">⬇ CSV</button>
           <button class="ghost-btn dim" onclick="clearLog()">Clear</button>
         </div>
+      </div>
+      <div id="gs-setup" style="display:none;background:#f0fdf4;border:1px solid #9fe1cb;border-radius:6px;padding:11px;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:#0f6e56;margin-bottom:6px;">Connect Google Sheets</div>
+        <div style="font-size:11px;color:#3d7a5e;margin-bottom:8px;line-height:1.6;">
+          1. Open a new Google Sheet<br>
+          2. Go to <strong>Extensions → Apps Script</strong><br>
+          3. Paste the script below and click Deploy → New deployment → Web app → Anyone → Deploy<br>
+          4. Copy the Web App URL and paste it here
+        </div>
+        <div style="background:#1a1a16;color:#9fe1cb;font-size:10px;font-family:monospace;padding:8px;border-radius:4px;margin-bottom:8px;line-height:1.7;overflow-x:auto;">
+function doPost(e){<br>
+&nbsp;&nbsp;var sheet=SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();<br>
+&nbsp;&nbsp;var d=JSON.parse(e.postData.contents);<br>
+&nbsp;&nbsp;if(sheet.getLastRow()===0)sheet.appendRow(['Candidate','Phone','Role','Company','Methods','Mode','Date']);<br>
+&nbsp;&nbsp;sheet.appendRow([d.name,d.phone,d.role,d.co,d.methods,d.mode,d.date]);<br>
+&nbsp;&nbsp;return ContentService.createTextOutput('ok');<br>
+}
+        </div>
+        <div style="display:flex;gap:7px;">
+          <input id="gs-url" type="text" placeholder="Paste Web App URL here..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid #9fe1cb;border-radius:5px;font-family:Inter,sans-serif;" />
+          <button class="gen-btn local-btn" style="padding:6px 12px;font-size:12px;width:auto;" onclick="saveGSUrl()">Save</button>
+          <button class="ghost-btn dim" onclick="hideGSSetup()">Cancel</button>
+        </div>
+        <div id="gs-saved-note" style="display:none;font-size:11px;color:#0f6e56;margin-top:6px;">✓ Google Sheets connected. New log entries will sync automatically.</div>
       </div>
       <div class="log-wrap">
         <table>
           <thead><tr><th>Candidate</th><th>Role</th><th>Company</th><th>Methods</th><th>Mode</th><th>Date</th></tr></thead>
           <tbody id="log-body">
-            <tr><td colspan="6" class="log-empty">No outreaches logged yet. Copy a draft to track it here.</td></tr>
+            <tr><td colspan="6" class="log-empty">No outreaches logged yet. Drafts auto-log as you generate.</td></tr>
           </tbody>
         </table>
       </div>
@@ -543,6 +571,10 @@ function populateDrafts(d,aiMode){
   const sc=document.getElementById('sms-cc');
   sc.textContent=sl+' / 160 chars';sc.style.color=sl>160?'#a32d2d':'var(--faint)';
   showState('sms','out');
+
+  // Auto-log on every generation
+  const cn=v('cName'),jc=v('jCo'),jr=v('jRole');
+  if(cn&&jc&&jr) logEntry(cn,v('cPhone'),jr,jc,aiMode?'AI·'+provider:'local');
 }
 
 function updateWALink(){
@@ -715,17 +747,44 @@ function copyActive(){
 }
 
 // LOG
+let gsUrl = localStorage.getItem('rd_gs_url') || '';
+
+function showGSSetup(){
+  document.getElementById('gs-setup').style.display='block';
+  document.getElementById('gs-url').value=gsUrl;
+  if(gsUrl) document.getElementById('gs-saved-note').style.display='block';
+}
+function hideGSSetup(){ document.getElementById('gs-setup').style.display='none'; }
+function saveGSUrl(){
+  gsUrl=document.getElementById('gs-url').value.trim();
+  localStorage.setItem('rd_gs_url',gsUrl);
+  document.getElementById('gs-saved-note').style.display='block';
+}
+
+function syncToGS(entry){
+  if(!gsUrl) return;
+  fetch(gsUrl,{method:'POST',body:JSON.stringify(entry)}).catch(()=>{});
+}
+
 function logEntry(name,phone,role,co,mode){
   if(log.find(l=>l.name===name&&l.co===co&&l.role===role))return;
-  log.unshift({name,phone:phone||'',role,co,methods:[],mode:mode||'local',date:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short'})});
+  const entry={name,phone:phone||'',role,co,methods:[],mode:mode||'local',date:new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short'})};
+  log.unshift(entry);
   if(log.length>100)log=log.slice(0,100);
-  localStorage.setItem('rd_log',JSON.stringify(log));renderLog();
+  localStorage.setItem('rd_log',JSON.stringify(log));
+  renderLog();
+  syncToGS({...entry,methods:'Generated'});
 }
 function logCopy(method){
   const cName=v('cName'),jCo=v('jCo'),jRole=v('jRole');if(!cName)return;
   let entry=log.find(l=>l.name===cName&&l.co===jCo&&l.role===jRole);
   if(!entry){logEntry(cName,v('cPhone'),jRole,jCo,isAI?'AI·'+provider:'local');entry=log[0];}
-  if(entry&&!entry.methods.includes(method)){entry.methods.push(method);localStorage.setItem('rd_log',JSON.stringify(log));renderLog();}
+  if(entry&&!entry.methods.includes(method)){
+    entry.methods.push(method);
+    localStorage.setItem('rd_log',JSON.stringify(log));
+    renderLog();
+    syncToGS({...entry,methods:entry.methods.join(', ')});
+  }
 }
 function renderLog(){
   const tbody=document.getElementById('log-body');
