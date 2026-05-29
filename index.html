@@ -418,50 +418,55 @@ footer{background:var(--surface);border-top:1px solid var(--border);padding:12px
 
     </div>
 
-    <!-- Log -->
-    <div class="card">
-      <div class="card-head">
+  </div>
+</div>
+
+<!-- FULL WIDTH TRACKER -->
+<div style="padding:16px 20px;background:var(--bg);">
+  <div class="card" id="tracker-card">
+    <div class="card-head">
+      <div style="display:flex;align-items:center;gap:10px;">
         <div class="card-title"><div class="card-icon">📋</div>Outreach Record & Tracker</div>
-        <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
-          <button class="gs-btn" onclick="showGSSetup()">🟢 Export to Google Sheets</button>
-          <button class="copy-btn" onclick="exportCSV()">⬇ CSV</button>
-          <button class="ghost-btn dim" onclick="clearLog()">Clear</button>
-        </div>
+        <span style="font-size:11px;color:var(--faint);">Quick local CRM. Drafts auto-log. Changes to candidate details update the record.</span>
       </div>
-      <div id="gs-setup" style="display:none;background:#f0fdf4;border:1px solid #9fe1cb;border-radius:6px;padding:11px;margin-bottom:10px;">
-        <div style="font-size:11px;font-weight:700;color:#0f6e56;margin-bottom:6px;">Connect Google Sheets</div>
-        <div style="font-size:11px;color:#3d7a5e;margin-bottom:8px;line-height:1.6;">
-          1. Open a new Google Sheet<br>
-          2. Go to <strong>Extensions → Apps Script</strong><br>
-          3. Paste the script below and click Deploy → New deployment → Web app → Anyone → Deploy<br>
-          4. Copy the Web App URL and paste it here
-        </div>
-        <div style="background:#1a1a16;color:#9fe1cb;font-size:10px;font-family:monospace;padding:8px;border-radius:4px;margin-bottom:8px;line-height:1.7;overflow-x:auto;">
-function doPost(e){<br>
-&nbsp;&nbsp;var sheet=SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();<br>
-&nbsp;&nbsp;var d=JSON.parse(e.postData.contents);<br>
-&nbsp;&nbsp;if(sheet.getLastRow()===0)sheet.appendRow(['Candidate','Phone','Role','Company','Methods','Mode','Date']);<br>
-&nbsp;&nbsp;sheet.appendRow([d.name,d.phone,d.role,d.co,d.methods,d.mode,d.date]);<br>
-&nbsp;&nbsp;return ContentService.createTextOutput('ok');<br>
-}
-        </div>
-        <div style="display:flex;gap:7px;">
-          <input id="gs-url" type="text" placeholder="Paste Web App URL here..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid #9fe1cb;border-radius:5px;font-family:Inter,sans-serif;" />
-          <button class="gen-btn local-btn" style="padding:6px 12px;font-size:12px;width:auto;" onclick="saveGSUrl()">Save</button>
-          <button class="ghost-btn dim" onclick="hideGSSetup()">Cancel</button>
-        </div>
-        <div id="gs-saved-note" style="display:none;font-size:11px;color:#0f6e56;margin-top:6px;">✓ Google Sheets connected. New log entries will sync automatically.</div>
-      </div>
-      <div class="log-wrap">
-        <table>
-          <thead><tr><th>Candidate</th><th>Role</th><th>Company</th><th>Methods</th><th>Mode</th><th>Date</th></tr></thead>
-          <tbody id="log-body">
-            <tr><td colspan="6" class="log-empty">No outreaches logged yet. Drafts auto-log as you generate.</td></tr>
-          </tbody>
-        </table>
+      <div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap;">
+        <button class="gs-btn" onclick="showGSSetup2()">🟢 Export to Google Sheets</button>
+        <button class="copy-btn" onclick="exportCSV()">⬇ CSV</button>
+        <button class="ghost-btn dim" onclick="clearLog()">Clear Log</button>
       </div>
     </div>
-
+    <div id="gs-setup2" style="display:none;background:#f0fdf4;border:1px solid #9fe1cb;border-radius:6px;padding:11px;margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:#0f6e56;margin-bottom:6px;">Connect Google Sheets</div>
+      <div style="font-size:11px;color:#3d7a5e;margin-bottom:8px;line-height:1.6;">
+        1. Open a new Google Sheet &nbsp;|&nbsp; 2. Go to <strong>Extensions → Apps Script</strong> &nbsp;|&nbsp; 3. Paste the script → Deploy as Web App → Anyone → Deploy &nbsp;|&nbsp; 4. Paste the URL below
+      </div>
+      <div style="background:#1a1a16;color:#9fe1cb;font-size:10px;font-family:monospace;padding:8px;border-radius:4px;margin-bottom:8px;line-height:1.7;overflow-x:auto;">
+function doPost(e){var sheet=SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();var d=JSON.parse(e.postData.contents);if(sheet.getLastRow()===0)sheet.appendRow(['Candidate','Phone','Role','Company','Methods','Mode','Date']);sheet.appendRow([d.name,d.phone,d.role,d.co,d.methods,d.mode,d.date]);return ContentService.createTextOutput('ok');}
+      </div>
+      <div style="display:flex;gap:7px;">
+        <input id="gs-url2" type="text" placeholder="Paste Web App URL here..." style="flex:1;font-size:12px;padding:6px 9px;border:1px solid #9fe1cb;border-radius:5px;font-family:Inter,sans-serif;" />
+        <button class="gen-btn local-btn" style="padding:6px 12px;font-size:12px;width:auto;" onclick="saveGSUrl2()">Save & Connect</button>
+        <button class="ghost-btn dim" onclick="document.getElementById('gs-setup2').style.display=\'none\'">Cancel</button>
+      </div>
+      <div id="gs-saved-note2" style="display:none;font-size:11px;color:#0f6e56;margin-top:6px;">✓ Connected. New entries sync to Google Sheets automatically.</div>
+    </div>
+    <div style="overflow-x:auto;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <thead>
+          <tr>
+            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:#fafafa;white-space:nowrap;">Candidate Details</th>
+            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:#fafafa;">Assigned Role</th>
+            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:#fafafa;">Company</th>
+            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:#fafafa;">Methods Sent</th>
+            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:#fafafa;">Mode</th>
+            <th style="text-align:left;padding:10px 12px;font-size:11px;font-weight:600;color:var(--faint);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);background:#fafafa;">Date Outreached</th>
+          </tr>
+        </thead>
+        <tbody id="log-body2">
+          <tr><td colspan="6" style="text-align:center;color:var(--faint);font-size:13px;padding:32px;">No candidate outreaches logged yet. Complete an outreach action to track progress.</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 </div>
 
@@ -847,15 +852,40 @@ function logCopy(method){
     syncToGS({...entry,methods:entry.methods.join(', ')});
   }
 }
+function showGSSetup2(){
+  document.getElementById('gs-setup2').style.display='block';
+  document.getElementById('gs-url2').value=gsUrl;
+  if(gsUrl) document.getElementById('gs-saved-note2').style.display='block';
+}
+function saveGSUrl2(){
+  gsUrl=document.getElementById('gs-url2').value.trim();
+  localStorage.setItem('rd_gs_url',gsUrl);
+  document.getElementById('gs-saved-note2').style.display='block';
+}
+
 function renderLog(){
-  const tbody=document.getElementById('log-body');
-  if(!log.length){tbody.innerHTML='<tr><td colspan="6" class="log-empty">No outreaches logged yet. Copy a draft to track it here.</td></tr>';return;}
-  tbody.innerHTML=log.map(e=>`<tr>
-    <td><strong>${e.name}</strong>${e.phone?`<br><span style="font-size:11px;color:var(--faint)">${e.phone}</span>`:''}</td>
-    <td>${e.role}</td><td>${e.co}</td>
-    <td>${(e.methods||[]).map(m=>`<span class="mbadge ${m==='Email'?'mb-e':m==='WhatsApp'?'mb-w':m==='LinkedIn'?'mb-l':'mb-s'}">${m}</span>`).join('')||'<span style="color:var(--faint);font-size:11px;">—</span>'}</td>
-    <td><span class="mbadge ${(e.mode||'').startsWith('AI')?'mb-ai':''}" style="${!(e.mode||'').startsWith('AI')?'background:var(--green-light);color:var(--green-dark)':''}">${(e.mode||'').startsWith('AI')?'✨ AI':'⚡ Local'}</span></td>
-    <td style="color:var(--faint);font-size:12px;">${e.date}</td>
+  const tbody=document.getElementById('log-body2');
+  if(!tbody) return;
+  if(!log.length){
+    tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--faint);font-size:13px;padding:32px;">No candidate outreaches logged yet. Complete an outreach action to track progress.</td></tr>';
+    return;
+  }
+  tbody.innerHTML=log.map(e=>`<tr style="border-bottom:1px solid var(--border);">
+    <td style="padding:11px 12px;vertical-align:middle;">
+      <strong style="font-size:13px;">${e.name}</strong>
+      ${e.phone?`<br><span style="font-size:11px;color:var(--faint)">${e.phone}</span>`:''}
+      ${e.email?`<br><span style="font-size:11px;color:var(--faint)">${e.email}</span>`:''}
+    </td>
+    <td style="padding:11px 12px;font-size:13px;color:var(--text);">${e.role}</td>
+    <td style="padding:11px 12px;font-size:13px;color:var(--text);">${e.co}</td>
+    <td style="padding:11px 12px;">
+      ${(e.methods||[]).length===0
+        ? '<span style="font-size:11px;color:var(--faint);">Profile Prepared</span>'
+        : (e.methods||[]).map(m=>`<span class="mbadge ${m==='Email'?'mb-e':m==='WhatsApp'?'mb-w':m==='LinkedIn'?'mb-l':'mb-s'}">${m}</span>`).join('')
+      }
+    </td>
+    <td style="padding:11px 12px;"><span class="mbadge ${(e.mode||'').startsWith('AI')?'mb-ai':''}" style="${!(e.mode||'').startsWith('AI')?'background:var(--green-light);color:var(--green-dark)':''}">${(e.mode||'').startsWith('AI')?'✨ AI':'⚡ Local'}</span></td>
+    <td style="padding:11px 12px;font-size:12px;color:var(--faint);">${e.date}</td>
   </tr>`).join('');
 }
 function clearLog(){if(!confirm('Clear all outreach history?'))return;log=[];localStorage.setItem('rd_log','[]');renderLog();}
